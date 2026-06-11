@@ -1,16 +1,17 @@
 # VanityH
 
-Hyperscript is a capable way to build UI without a compiler. The nested `h()` calls are another story. VanityH turns them into a chainable syntax that reads the way the DOM looks — flat, ordered, and obvious.
+Hyperscript without the nesting — chainable syntax that reads the way the DOM looks.  
+告别嵌套的 hyperscript —— 链式语法，读起来和 DOM 的结构一样直观。
 
-Hyperscript 是不依赖编译器构建 UI 的强大方式。但嵌套的 `h()` 调用是另一回事。VanityH 将它们变成可链式调用的语法，读起来和 DOM 的结构一样——扁平、有序、一目了然。
+---
+
+Hyperscript is a capable way to build UI without a compiler. The nested `h()` calls are another story. VanityH turns them into a chainable syntax that reads the way the DOM looks — flat, ordered, and obvious.
 
 No JSX, no templates, no build step. Just functions that compose.
 
+Hyperscript 是不依赖编译器构建 UI 的强大方式。但嵌套的 `h()` 调用是另一回事。VanityH 将它们变成可链式调用的语法，读起来和 DOM 的结构一样——扁平、有序、一目了然。
+
 没有 JSX，没有模板，没有构建步骤。只有组合的函数。
-
-Hyperscript without the nesting — chainable syntax that reads the way the DOM looks.
-
-告别嵌套的 hyperscript —— 链式语法，读起来和 DOM 的结构一样直观。
 
 ---
 
@@ -22,9 +23,11 @@ Hyperscript without the nesting — chainable syntax that reads the way the DOM 
 h('div', { class: 'card' }, [
   h('header', { class: 'card-header' }, [
     h('h2', null, 'Title'),
-    h('button', { class: 'close', onClick: handleClose }, '×'),
+    h('button', { class: 'close', onClick: handleClose }, '×')
   ]),
-  h('main', { class: 'card-body' }, [h('p', null, 'Content goes here')]),
+  h('main', { class: 'card-body' }, [
+    h('p', null, 'Content goes here')
+  ])
 ])
 ```
 
@@ -38,8 +41,13 @@ Every layer adds indentation. Attributes, events, and children interleave. The v
 
 ```js
 div.class('card')(
-  header.class('card-header')(h2('Title'), button.class('close').onClick(handleClose)('×')),
-  main.class('card-body')(p('Content goes here')),
+  header.class('card-header')(
+    h2('Title'),
+    button.class('close').onClick(handleClose)('×')
+  ),
+  main.class('card-body')(
+    p('Content goes here')
+  )
 )
 ```
 
@@ -77,6 +85,8 @@ const blueBtn = baseBtn.style('color: blue')('Blue')
 
 ## Quick Start / 快速开始
 
+### NPM
+
 ```bash
 npm install vanity-h
 ```
@@ -92,11 +102,29 @@ function App() {
 
   return div.class('app')(
     span('Count: ', count),
-    button.onClick(() => setCount((c) => c + 1))('+1'),
+    button.onClick(() => setCount(c => c + 1))('+1')
   )
 }
 
 render(App(), document.getElementById('app'))
+```
+
+### CDN
+
+No build step required. Import directly in the browser.
+
+无需构建步骤。直接在浏览器中导入。
+
+```html
+<script type="module">
+  import { h, render } from 'https://esm.sh/preact'
+  import createVanity from 'https://esm.sh/vanity-h'
+
+  const { div, span } = createVanity(h)
+
+  const app = () => div.class('app')(span('Hello World'))
+  render(app(), document.getElementById('app'))
+</script>
 ```
 
 Works with any hyperscript renderer — Preact, React, Vue, Snabbdom, or your own.
@@ -116,7 +144,7 @@ const { div, h1, p, a, img, input, button } = createVanity(h)
 
 **Tags** — Any HTML element. The functions are created lazily, so you only pay for what you use.
 
-**Attributes** — Chain them. `class`, `style`, `id`, `href`, `src`, `disabled`, `placeholder`, `type`, `value`, `checked`, and any custom attribute. Hyphenated names like `aria-label` are supported.
+**Attributes** — Chain them. `class`, `style`, `id`, `href`, `src`, `disabled`, `placeholder`, `type`, `value`, `checked`, and any custom attribute.
 
 **Events** — `onClick`, `onInput`, `onSubmit`, or any `onXxx` handler.
 
@@ -124,7 +152,7 @@ const { div, h1, p, a, img, input, button } = createVanity(h)
 
 **标签** — 任意 HTML 元素。函数是惰性创建的，只有你用到的才会生成。
 
-**属性** — 链式设置。`class`、`style`、`id`、`href`、`src`、`disabled`、`placeholder`、`type`、`value`、`checked`，以及任何自定义属性。支持 `aria-label` 这样的短横线命名。
+**属性** — 链式设置。`class`、`style`、`id`、`href`、`src`、`disabled`、`placeholder`、`type`、`value`、`checked`，以及任何自定义属性。
 
 **事件** — `onClick`、`onInput`、`onSubmit`，或任意 `onXxx` 处理器。
 
@@ -143,9 +171,61 @@ hr()
 div(
   h1('Welcome'),
   p('This is a ', a.href('/about')('link')),
-  ['a', 'b', 'c'].map((s) => span(s)),
+  ['a', 'b', 'c'].map(s => span(s))
 )
 ```
+
+---
+
+## Wrapping Components / 包装组件
+
+Use `x(Component)` — returned by `createVanity(h)` — to turn any component function into a chainable VanityH element. This works with your own components, third‑party components, or anything that accepts props.
+
+使用 `createVanity(h)` 返回的 `x(Component)` 可将任意组件函数转换为可链式调用的 VanityH 元素。这适用于你自己的组件、第三方组件，或任何接受 props 的函数。
+
+```js
+import createVanity from 'vanity-h'
+import { h } from 'your-renderer'
+
+const { div, button, x } = createVanity(h)
+
+function FancyButton({ label, onClick }) {
+  return button.class('fancy').onClick(onClick)(label)
+}
+
+// Wrap with x() and chain props / 用 x() 包装并链式设置 props
+x(FancyButton).label('Save').onClick(handleSave)()
+```
+
+Every object automatically gains a `$` property that is equivalent to calling `x()` on that object. The following is identical:
+
+每个对象自动获得一个 `$` 属性，等价于对该对象调用 `x()`。以下写法完全等价：
+
+```js
+FancyButton.$.label('Save').onClick(handleSave)()
+```
+
+`$` requires no import — it is a global convenience. `x()` is the explicit form, available from `createVanity(h)`. Both are core features, not framework adapters. They work with any renderer, with no extra packages.
+
+`$` 无需导入 —— 它是一个全局便捷属性。`x()` 是显式形式，从 `createVanity(h)` 中获取。两者都是核心特性，不是框架适配层。适用于任何渲染器，无需额外包。
+
+---
+
+## TypeScript / 类型支持
+
+```typescript
+import createVanity, { type VanityH } from 'vanity-h'
+import { h, type VNode } from 'your-renderer'
+
+const v: VanityH<VNode> = createVanity(h)
+
+// v.div, v.span, etc. are all typed
+const element = v.div.class('test').id('app')('content')
+```
+
+The `VanityH<R>` type carries the renderer's node type, so your chainable elements return the correct VNode type for your renderer.
+
+`VanityH<R>` 类型携带渲染器的节点类型，因此你的链式元素会为你的渲染器返回正确的 VNode 类型。
 
 ---
 
