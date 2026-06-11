@@ -1,269 +1,162 @@
-<h1 align="center">
-  VanityH
-  <a href="https://www.npmjs.com/package/vanity-h"><img src="https://img.shields.io/npm/v/vanity-h.svg?style=flat" alt="npm version"></a>
-</h1>
+# VanityH
 
-[简体中文](./README_zh.md)
+Hyperscript is a capable way to build UI without a compiler. The nested `h()` calls are another story. VanityH turns them into a chainable syntax that reads the way the DOM looks — flat, ordered, and obvious.
 
-### 🚀 VanityH: Make Hyperscript Elegant
+Hyperscript 是不依赖编译器构建 UI 的强大方式。但嵌套的 `h()` 调用是另一回事。VanityH 将它们变成可链式调用的语法，读起来和 DOM 的结构一样——扁平、有序、一目了然。
 
-**Say goodbye to nesting hell, embrace fluent development experience**
+No JSX, no templates, no build step. Just functions that compose.
 
-VanityH is not just another complex UI framework. It's a minimal **DSL (Domain-Specific Language) builder**. Using Proxy and closure logic, it transforms verbose `h(tag, props, children)` calls into a fluent, chainable syntax similar to **SwiftUI** or **Flutter**.
+没有 JSX，没有模板，没有构建步骤。只有组合的函数。
 
----
+Hyperscript without the nesting — chainable syntax that reads the way the DOM looks.
 
-### 🎯 Core Problems VanityH Solves
-
-In non-JSX environments (vanilla JS/TS, scripting tools, low-code engines), developers face these challenges:
-
-- **Nesting Hell**: Traditional `h` functions require heavy object nesting, creating visual noise
-- **Prop Mutation**: Component reuse often accidentally pollutes original definitions
-- **Cognitive Load**: Properties, events, and child nodes are interleaved, making DOM structure hard to understand
-- **Environment Dependencies**: JSX requires compilation setup, not suitable for lightweight use in native browser environments
-
-**VanityH perfectly resolves these issues with "chainable configuration + terminator rendering" logic.**
+告别嵌套的 hyperscript —— 链式语法，读起来和 DOM 的结构一样直观。
 
 ---
 
-### ✨ Why Choose VanityH?
-
-#### 🎨 Structural Elegance
-
-VanityH separates property configuration from node mounting syntax, creating perfect mapping between code structure and DOM structure.
+## The Problem / 问题
 
 ```js
-html.lang('en')(
-  head(
-    meta.charset('UTF-8')(),
-    link.rel('icon').type('image/svg+xml').href('/favicon.svg')(),
-    title('VanityH – Elegance Redefined'),
-  ),
-  body(div.id('app')(), script.type('module').src('/src/main.ts')()),
+// Traditional hyperscript — the structure is buried in nesting
+// 传统 hyperscript —— 结构被埋没在嵌套中
+h('div', { class: 'card' }, [
+  h('header', { class: 'card-header' }, [
+    h('h2', null, 'Title'),
+    h('button', { class: 'close', onClick: handleClose }, '×'),
+  ]),
+  h('main', { class: 'card-body' }, [h('p', null, 'Content goes here')]),
+])
+```
+
+Every layer adds indentation. Attributes, events, and children interleave. The visual shape of the code has little to do with the shape of the DOM.
+
+每一层都增加缩进。属性、事件和子节点混杂在一起。代码的视觉形态与 DOM 的结构几乎没有关联。
+
+---
+
+## The VanityH Way / VanityH 的方式
+
+```js
+div.class('card')(
+  header.class('card-header')(h2('Title'), button.class('close').onClick(handleClose)('×')),
+  main.class('card-body')(p('Content goes here')),
 )
 ```
 
-#### 🔒 Fully Immutable Architecture
+The structure matches what you see in the browser. The outer element wraps its children. Attributes chain before the final call. No arrays, no commas between siblings, no closing brackets fighting for attention.
 
-Based on **Copy-on-Write** philosophy, each property call produces a brand-new state snapshot.
+结构与你浏览器中看到的一致。外层元素包裹其子节点。属性在最终调用前链式设置。没有数组，没有同级元素之间的逗号，没有争抢注意力的括号。
+
+---
+
+## How It Works / 原理
+
+VanityH is a thin wrapper around any hyperscript function. It gives you a set of proxy-based tag functions. Each tag function collects attributes through chained calls, then renders when invoked as a function with children.
+
+VanityH 是任意 hyperscript 函数的薄包装。它提供了一组基于 Proxy 的标签函数。每个标签函数通过链式调用收集属性，在被作为函数调用并传入子节点时渲染。
+
+```js
+button.class('btn').onClick(handle)('Click me')
+//  config  →  config  →  config   →  render
+//  配置 → 配置 → 配置 → 渲染
+```
+
+The chained calls return new proxies. The original is never mutated. You can reuse a configured element without affecting other uses.
+
+链式调用返回新的 Proxy。原始对象永远不会被修改。你可以复用已配置的元素，而不影响其他使用处。
 
 ```js
 const baseBtn = button.class('btn')
 
-const redBtn = baseBtn.style('color: red')('Red Button')
-const blueBtn = baseBtn.style('color: blue')('Blue Button') // baseBtn remains pure
+const redBtn = baseBtn.style('color: red')('Red')
+const blueBtn = baseBtn.style('color: blue')('Blue')
+// baseBtn remains unchanged / baseBtn 保持不变
 ```
-
-#### 🔍 Zero Magic Design
-
-Tools should not be smarter than developers. VanityH doesn't auto-handle booleans, no implicit conversions, fully transparent.
-
-#### 📦 Ultra-Lightweight & Compatible
-
-- **Size**: Just 186 bytes, ultra-minimal implementation
-- **Compatibility**: Supports Vue, Preact, React, Snabbdom, and any hyperscript-compatible renderer
 
 ---
 
-### 🚀 Quick Start
-
-#### Installation
-
-**NPM:**
+## Quick Start / 快速开始
 
 ```bash
 npm install vanity-h
 ```
 
-**CDN (No Build Step Required):**
+```js
+import { h, render } from 'preact'
+import createVanity from 'vanity-h'
 
-```html
-<script type="module">
-  import { render, h } from 'https://esm.sh/preact'
-  import createVanity from 'https://esm.sh/vanity-h'
+const { div, span, button } = createVanity(h)
 
-  const { div, span } = createVanity(h)
+function App() {
+  const [count, setCount] = useState(0)
 
-  const app = () => div.class('app')(span('Hello World'))
-  render(app(), document.getElementById('app'))
-</script>
+  return div.class('app')(
+    span('Count: ', count),
+    button.onClick(() => setCount((c) => c + 1))('+1'),
+  )
+}
+
+render(App(), document.getElementById('app'))
 ```
 
-#### Traditional vs VanityH Syntax
+Works with any hyperscript renderer — Preact, React, Vue, Snabbdom, or your own.
+
+与任何 hyperscript 渲染器配合使用——Preact、React、Vue、Snabbdom，或你自己的渲染器。
+
+---
+
+## Usage / 使用方式
 
 ```js
-// Traditional hyperscript
-h('div', { class: 'card', style: 'padding: 20px' }, [
-  h('button', { class: 'btn-primary', onClick: handleClick }, 'Click me'),
-])
+import { h } from 'your-renderer'
+import createVanity from 'vanity-h'
 
-// VanityH syntax
-div.class('card').style('padding: 20px')(
-  button.class('btn-primary').onClick(handleClick)('Click me'),
+const { div, h1, p, a, img, input, button } = createVanity(h)
+```
+
+**Tags** — Any HTML element. The functions are created lazily, so you only pay for what you use.
+
+**Attributes** — Chain them. `class`, `style`, `id`, `href`, `src`, `disabled`, `placeholder`, `type`, `value`, `checked`, and any custom attribute. Hyphenated names like `aria-label` are supported.
+
+**Events** — `onClick`, `onInput`, `onSubmit`, or any `onXxx` handler.
+
+**Children** — Pass them as arguments to the final call. Strings, numbers, other elements, arrays — anything your hyperscript function accepts.
+
+**标签** — 任意 HTML 元素。函数是惰性创建的，只有你用到的才会生成。
+
+**属性** — 链式设置。`class`、`style`、`id`、`href`、`src`、`disabled`、`placeholder`、`type`、`value`、`checked`，以及任何自定义属性。支持 `aria-label` 这样的短横线命名。
+
+**事件** — `onClick`、`onInput`、`onSubmit`，或任意 `onXxx` 处理器。
+
+**子节点** — 在最终调用中作为参数传入。字符串、数字、其他元素、数组——任意你的 hyperscript 函数接受的内容。
+
+```js
+// Attribute chaining / 属性链式调用
+div.class('container').id('main').style('padding: 1rem')()
+
+// Void elements — no children / Void 元素 —— 无子节点
+input.type('text').placeholder('Enter name')()
+br()
+hr()
+
+// Mix of children types / 混合子节点类型
+div(
+  h1('Welcome'),
+  p('This is a ', a.href('/about')('link')),
+  ['a', 'b', 'c'].map((s) => span(s)),
 )
 ```
 
 ---
 
-### 🔧 Framework Adapters
+## What VanityH Is Not / VanityH 不是什么
 
-VanityH ships with first-class adapters for Vue, React, and Preact with full TypeScript support.
+VanityH does not parse HTML. It does not introduce a component model. It does not manage state, track dependencies, or update the DOM. It is a syntax layer — a way to write hyperscript that looks as clean as the markup it produces. Your renderer handles the rest.
 
-#### Vue 3
-
-```typescript
-import vanity, { defineComponent } from 'vanity-h/vue'
-import { createApp } from 'vue'
-
-const { div } = vanity
-
-// Option A: array emits — event handlers are typed but parameters are `any`
-const MyComp = defineComponent(
-  (props: { name: string; age: number }) => {
-    return () => div.class('demo')(props.name, props.age)
-  },
-  { props: ['name', 'age'], emits: ['say'] },
-)
-
-MyComp.$.name('Tom')
-  .age(20)
-  .onSay(() => {})() // ✅ onSay exists and is checked
-
-// Option B: object emits — full parameter type inference
-const MyComp2 = defineComponent(
-  (props: { name: string }) => {
-    return () => div(props.name)
-  },
-  {
-    props: ['name'],
-    emits: { say: (word: string) => !!word },
-  },
-)
-
-MyComp2.$.name('Tom').onSay((word) => console.log(word))() // ✅ word: string
-MyComp2.$.name(123)() // ❌ type error
-
-createApp(defineComponent(() => () => div())).mount('#app')
-```
-
-**Emits type inference levels:**
-
-| `emits` style                           | `onXxx` handler type                     |
-| --------------------------------------- | ---------------------------------------- |
-| Array `['say']`                         | `((...args: any[]) => any) \| undefined` |
-| Object `{ say: (word: string) => ... }` | `((word: string) => any) \| undefined`   |
-
-#### React
-
-```typescript
-import vanity, { defineComponent } from 'vanity-h/react'
-
-const { div } = vanity
-
-const MyComp = defineComponent(({ name, age }: { name: string; age: number }) => {
-  return div(name, age)
-})
-
-// $ provides typed prop chaining
-MyComp.$.name('Tom').age(20)() // ✅
-```
-
-#### Preact
-
-```typescript
-import vanity, { defineComponent } from 'vanity-h/preact'
-
-const { div } = vanity
-
-const MyComp = defineComponent(({ name }: { name: string }) => {
-  return div(name)
-})
-
-MyComp.$.name('Tom')() // ✅
-```
+VanityH 不解析 HTML。不引入组件模型。不管理状态，不追踪依赖，不更新 DOM。它是一个语法层——一种写 hyperscript 的方式，让它看起来和它产生的标记一样干净。其余由你的渲染器处理。
 
 ---
 
-### ✨ The `$` Property
+## License / 许可证
 
-The `$` property is a shorthand equivalent to `x()` — it wraps any component for typed prop chaining:
-
-```typescript
-// These are equivalent
-x(MyComp).name('Tom').age(20)()
-MyComp.$.name('Tom').age(20)()
-```
-
-`$` is implemented as a global `Object.prototype` getter at runtime. Framework adapters' `defineComponent` is **purely a type-level wrapper** — it returns the component as-is with no runtime overhead. The global getter handles everything at runtime.
-
-When using framework adapters with `defineComponent`, `$` carries full prop type inference. On components not wrapped with `defineComponent` (e.g. Vue built-ins like `Transition`), `$` is untyped but still callable:
-
-```typescript
-import { Transition } from 'vue'
-Transition.$.name('fade')() // works, untyped
-```
-
----
-
-### 🛠 Technical Implementation
-
-VanityH internally uses JavaScript's **Proxy** to intercept `get` operations, combined with **recursive closures** to manage state:
-
-- **Configuration Mode**: Accessing properties returns a new Proxy with internal closure holding accumulated `props` object
-- **Execution Mode**: When Proxy is called as function, it submits `props` and `children` to the renderer
-
----
-
-### 🔧 TypeScript Support
-
-```typescript
-import createVanity, { type VanityH } from 'vanity-h'
-import { h, type VNode } from 'vue'
-
-const v: VanityH<VNode> = createVanity(h)
-
-const element = v.div.class('test').id('app')('Content')
-```
-
-Framework adapters provide deeper type inference — see [Framework Adapters](#-framework-adapters) above.
-
----
-
-### 📊 Performance
-
-- **Size**: 186 bytes (minified) / ~150 bytes (gzipped)
-- **Zero Dependencies**: Pure JavaScript implementation
-- **High Performance**: Proxy interception overhead is negligible
-- **Memory Friendly**: Closure-based immutable design
-
----
-
-### 🤝 Contributing
-
-#### Development Setup
-
-```bash
-git clone https://github.com/VanityH/vanityh.git
-cd vanityh
-vp install       # install dependencies
-vp check         # type check + lint
-vp test          # run tests
-vp pack          # build library
-```
-
----
-
-### 📄 License
-
-MIT License © 2026 VanityH Team
-
-**VanityH**: Make writing render functions a pleasure, not a pain.
-
----
-
-### 🙏 Acknowledgments
-
-- [HTM](https://github.com/developit/htm) - JSX-like syntax in plain JavaScript
-- [DLight](https://github.com/dlight-js/dlight) - DX-first UI rendering library
-- [Hyperscript](https://github.com/hyperhype/hyperscript) - Create HTML with JavaScript
-- [SwiftUI](https://developer.apple.com/swiftui) - Declarative UI framework
+MIT
