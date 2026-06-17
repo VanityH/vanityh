@@ -23,9 +23,11 @@ Hyperscript 是不依赖编译器构建 UI 的强大方式。但嵌套的 `h()` 
 h('div', { class: 'card' }, [
   h('header', { class: 'card-header' }, [
     h('h2', null, 'Title'),
-    h('button', { class: 'close', onClick: handleClose }, '×'),
+    h('button', { class: 'close', onClick: handleClose }, '×')
   ]),
-  h('main', { class: 'card-body' }, [h('p', null, 'Content goes here')]),
+  h('main', { class: 'card-body' }, [
+    h('p', null, 'Content goes here')
+  ])
 ])
 ```
 
@@ -39,8 +41,13 @@ Every layer adds indentation. Attributes, events, and children interleave. The v
 
 ```js
 div.class('card')(
-  header.class('card-header')(h2('Title'), button.class('close').onClick(handleClose)('×')),
-  main.class('card-body')(p('Content goes here')),
+  header.class('card-header')(
+    h2('Title'),
+    button.class('close').onClick(handleClose)('×')
+  ),
+  main.class('card-body')(
+    p('Content goes here')
+  )
 )
 ```
 
