@@ -23,11 +23,9 @@ Hyperscript 是不依赖编译器构建 UI 的强大方式。但嵌套的 `h()` 
 h('div', { class: 'card' }, [
   h('header', { class: 'card-header' }, [
     h('h2', null, 'Title'),
-    h('button', { class: 'close', onClick: handleClose }, '×')
+    h('button', { class: 'close', onClick: handleClose }, '×'),
   ]),
-  h('main', { class: 'card-body' }, [
-    h('p', null, 'Content goes here')
-  ])
+  h('main', { class: 'card-body' }, [h('p', null, 'Content goes here')]),
 ])
 ```
 
@@ -41,13 +39,8 @@ Every layer adds indentation. Attributes, events, and children interleave. The v
 
 ```js
 div.class('card')(
-  header.class('card-header')(
-    h2('Title'),
-    button.class('close').onClick(handleClose)('×')
-  ),
-  main.class('card-body')(
-    p('Content goes here')
-  )
+  header.class('card-header')(h2('Title'), button.class('close').onClick(handleClose)('×')),
+  main.class('card-body')(p('Content goes here')),
 )
 ```
 
@@ -102,7 +95,7 @@ function App() {
 
   return div.class('app')(
     span('Count: ', count),
-    button.onClick(() => setCount(c => c + 1))('+1')
+    button.onClick(() => setCount((c) => c + 1))('+1'),
   )
 }
 
@@ -142,21 +135,25 @@ import createVanity from 'vanity-h'
 const { div, h1, p, a, img, input, button } = createVanity(h)
 ```
 
-**Tags** — Any HTML element. The functions are created lazily, so you only pay for what you use.
+**Tags / 标签**
 
-**Attributes** — Chain them. `class`, `style`, `id`, `href`, `src`, `disabled`, `placeholder`, `type`, `value`, `checked`, and any custom attribute.
+- Any HTML element. The functions are created lazily, so you only pay for what you use.
+- 任意 HTML 元素。函数是惰性创建的，只有你用到的才会生成。
 
-**Events** — `onClick`, `onInput`, `onSubmit`, or any `onXxx` handler.
+**Attributes / 属性**
 
-**Children** — Pass them as arguments to the final call. Strings, numbers, other elements, arrays — anything your hyperscript function accepts.
+- Chain them. `class`, `style`, `id`, `href`, `src`, `disabled`, `placeholder`, `type`, and any custom attribute.
+- 链式设置。`class`、`style`、`id`、`href`、`src`、`disabled`、`placeholder`、`type`，以及任何自定义属性。
 
-**标签** — 任意 HTML 元素。函数是惰性创建的，只有你用到的才会生成。
+**Events / 事件**
 
-**属性** — 链式设置。`class`、`style`、`id`、`href`、`src`、`disabled`、`placeholder`、`type`、`value`、`checked`，以及任何自定义属性。
+- `onClick`, `onInput`, `onSubmit`, or any `onXxx` handler.
+- `onClick`、`onInput`、`onSubmit`，或任意 `onXxx` 处理器。
 
-**事件** — `onClick`、`onInput`、`onSubmit`，或任意 `onXxx` 处理器。
+**Children / 子节点**
 
-**子节点** — 在最终调用中作为参数传入。字符串、数字、其他元素、数组——任意你的 hyperscript 函数接受的内容。
+- Pass them as arguments to the final call. Strings, numbers, other elements, arrays — anything your hyperscript function accepts.
+- 在最终调用中作为参数传入。字符串、数字、其他元素、数组——任意你的 hyperscript 函数接受的内容。
 
 ```js
 // Attribute chaining / 属性链式调用
@@ -171,7 +168,7 @@ hr()
 div(
   h1('Welcome'),
   p('This is a ', a.href('/about')('link')),
-  ['a', 'b', 'c'].map(s => span(s))
+  ['a', 'b', 'c'].map((s) => span(s)),
 )
 ```
 
